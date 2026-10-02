@@ -1,0 +1,34 @@
+# Development overrides, applied automatically by `docker compose up`.
+# Source folders are bind-mounted and rebuilt on change (dotnet watch / Vite HMR).
+# After changing package.json or a .csproj, run `docker compose up --build -V` to refresh dependency volumes.
+services:
+  api:
+    # Separate tag so the prod-like stack never picks up the dev image (and vice versa).
+    image: mini-issue-tracker-api:dev
+    build:
+      target: dev
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+    volumes:
+      - ./backend:/src
+      # Keep container build output separate from the host's (Windows) bin/obj folders.
+      - /src/IssueTracker.Api/bin
+      - /src/IssueTracker.Api/obj
+      - nuget-cache:/root/.nuget/packages
+
+  web:
+    image: mini-issue-tracker-web:dev
+    build:
+      target: dev
+    environment:
+      API_PROXY_TARGET: http://api:8080
+      WATCH_POLLING: "true"
+    ports: !override
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      # Use the image's Linux node_modules, not the host folder.
+      - /app/node_modules
+
+volumes:
+  nuget-cache:

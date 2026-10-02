@@ -1,0 +1,25 @@
+@host = http://localhost:8080
+
+GET {{host}}/api/issues
+Accept: application/json
+
+###
+
+GET {{host}}/api/issues?status=Open
+Accept: application/json
+
+###
+
+POST {{host}}/api/issues
+Content-Type: application/json
+
+{
+  "title": "Login button not working",
+  "description": "Clicking login does nothing on Safari."
+}
+
+###
+
+PATCH {{host}}/api/issues/1/resolve
+
+###
