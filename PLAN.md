@@ -188,8 +188,8 @@ Each phase ends with a verifiable checkpoint and a commit.
 **Checkpoint:** clean structure committed.
 
 ### Phase 1 — Database & Docker base
-- [ ] 1.1 `docker-compose.yml` with `db` service (`mcr.microsoft.com/mssql/server:2022-latest`), `ACCEPT_EULA`, `MSSQL_SA_PASSWORD` from `.env`, named volume, healthcheck
-- [ ] 1.2 `docker compose up db` and confirm it becomes healthy
+- [x] 1.1 `docker-compose.yml` with `db` service (`mcr.microsoft.com/mssql/server:2022-latest`), `ACCEPT_EULA`, `MSSQL_SA_PASSWORD` from `.env`, named volume, healthcheck
+- [x] 1.2 `docker compose up db` and confirm it becomes healthy (SQL Server 2022 CU25, healthy in ~5s)
 
 **Checkpoint:** SQL Server reachable on `localhost:1433`.
 
