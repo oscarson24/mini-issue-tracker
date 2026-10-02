@@ -96,6 +96,41 @@ describe('App', () => {
     expect(await screen.findByText('No open issues. Nice work!')).toBeInTheDocument()
   })
 
+  it('keeps an issue resolved from the Open view visible after switching to All mid-request', async () => {
+    let finishResolve!: (issue: typeof openIssue) => void
+    service.resolve.mockReturnValue(new Promise((resolve) => (finishResolve = resolve)))
+    service.getAll.mockResolvedValue([openIssue])
+    render(<App />)
+    await screen.findByRole('article', { name: 'Login button not working' })
+    await userEvent.click(screen.getByRole('button', { name: 'Open' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Mark as resolved' }))
+
+    service.getAll.mockResolvedValue([openIssue, resolvedIssue])
+    await userEvent.click(screen.getByRole('button', { name: 'All' }))
+    await screen.findByRole('article', { name: 'Fix typo' })
+    finishResolve({ ...openIssue, status: 'Resolved', resolvedAt: '2026-10-02T10:00:00+00:00' })
+
+    const card = await screen.findByRole('article', { name: 'Login button not working' })
+    expect(await within(card).findByText('Resolved', { selector: 'span' })).toBeInTheDocument()
+  })
+
+  it('does not add a new issue to the Resolved view when the filter changes mid-request', async () => {
+    let finishCreate!: (issue: typeof openIssue) => void
+    service.create.mockReturnValue(new Promise((resolve) => (finishCreate = resolve)))
+    render(<App />)
+    await screen.findByRole('article', { name: 'Login button not working' })
+
+    await userEvent.type(screen.getByLabelText(/title/i), 'Brand new issue')
+    await userEvent.click(screen.getByRole('button', { name: /add issue/i }))
+    service.getAll.mockResolvedValue([resolvedIssue])
+    await userEvent.click(screen.getByRole('button', { name: 'Resolved' }))
+    await screen.findByRole('article', { name: 'Fix typo' })
+    finishCreate(makeIssue({ id: 3, title: 'Brand new issue' }))
+
+    await screen.findByLabelText(/title/i).then((input) => expect(input).toHaveValue(''))
+    expect(screen.queryByRole('article', { name: 'Brand new issue' })).not.toBeInTheDocument()
+  })
+
   it('shows an error on the item when resolving fails', async () => {
     service.resolve.mockRejectedValue(new ApiError(404, 'Not Found'))
     render(<App />)

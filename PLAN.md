@@ -1,6 +1,6 @@
 # Mini Issue Tracker — Implementation Plan
 
-> Status: **APPROVED — in progress.** PRs target `main`.
+> Status: **IMPLEMENTED** on `feature/initial-implementation` — PR to `main` pending a git remote.
 > Items marked ✅ are the chosen/recommended defaults. The plan below assumes them.
 
 ---
@@ -243,27 +243,28 @@ Notes: `dotnet watch` logs a harmless `staticwebassets.development.json` error a
 **Checkpoint ✅:** `.env` + one command = working app, in either mode.
 
 ### Phase 5 — Docs & wrap-up
-- [ ] 5.1 README: prerequisites, setup, run commands, URLs, running tests, troubleshooting (port 1433 in use, SA password complexity rules)
-- [ ] 5.2 Final manual smoke test: create → appears as Open → resolve → filter Open/Resolved
-- [ ] 5.3 Code review pass, then PR to `main`
+- [x] 5.1 README: prerequisites, quick start, both run modes, architecture, API table, tests (with/without Node), running outside Docker, migrations, troubleshooting; `npm test` script added; Tailwind moved to devDependencies
+- [x] 5.2 Manual smoke test: create → appears as Open → resolve → filter Open/Resolved (in Chrome during Phase 3; API flows via curl in Phases 2 and 4)
+- [x] 5.3 Code review pass — 1 finding fixed: create/resolve applied the filter captured at call time to whichever list was loaded when the response arrived (switching filters mid-request could hide a resolved issue from "All" or show a new issue under "Resolved"). Now each loaded list carries its own filter; 2 regression tests added (frontend: 26 tests)
+- [ ] 5.4 PR to `main` — waiting on a git remote
 
 ---
 
 ## 7. Acceptance Criteria
-- [ ] Issue list shows title, description, timestamps, and Open/Resolved status
-- [ ] New issue can be created from the form and appears immediately
-- [ ] "Mark as resolved" changes status and sets `resolvedAt`
-- [ ] Filter shows All / only Open / only Resolved
-- [ ] All frontend HTTP calls go through `src/services/` (no `fetch` in components/hooks)
-- [ ] UI styled with Tailwind CSS
-- [ ] API exposes GET/POST/PATCH endpoints, documented in Swagger UI
-- [ ] Data persisted in SQL Server via EF Core (survives container restarts)
-- [ ] Entire stack starts with `docker compose up`
+- [x] Issue list shows title, description, timestamps, and Open/Resolved status
+- [x] New issue can be created from the form and appears immediately
+- [x] "Mark as resolved" changes status and sets `resolvedAt`
+- [x] Filter shows All / only Open / only Resolved
+- [x] All frontend HTTP calls go through `src/services/` (only `apiClient.ts` calls `fetch`)
+- [x] UI styled with Tailwind CSS
+- [x] API exposes GET/POST/PATCH endpoints, documented in Swagger UI
+- [x] Data persisted in SQL Server via EF Core (survives container restarts)
+- [x] Entire stack starts with `docker compose up`
 
 ## 8. Risks & Notes
 - **SA password policy:** SQL Server refuses to start with a weak password (min 8 chars, 3 of: upper/lower/digit/symbol).
 - **Startup ordering:** handled by DB healthcheck + EF retry.
 - **Memory:** SQL Server container needs ~2 GB RAM; make sure Docker Desktop allows it.
-- **Hot reload on Windows mounts:** file watching across Docker bind mounts can be unreliable; dev override sets `CHOKIDAR_USEPOLLING` / `DOTNET_USE_POLLING_FILE_WATCHER=true`.
+- **Hot reload on Windows mounts:** file watching across Docker bind mounts can be unreliable; dev setup polls instead (`WATCH_POLLING=true` → Vite `usePolling`, `DOTNET_USE_POLLING_FILE_WATCHER=true`).
 - **Branching:** work happens on `feature/initial-implementation`, branched from `main`; the PR targets `main`.
 - **Node.js is not installed locally:** the frontend builds and runs inside Docker. Running frontend tests or `npm` commands on the host needs Node 22 LTS (or run them via `docker compose run web ...`).
