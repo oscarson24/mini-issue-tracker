@@ -231,13 +231,16 @@ For running the API outside Docker: `dotnet user-secrets set ConnectionStrings:D
 **Checkpoint ✅:** Nginx image served the app on :3000 against the real API; verified in Chrome: validation, create, resolve, Open/Resolved filters, no console errors.
 
 ### Phase 4 — Full Docker Compose
-- [ ] 4.1 Add `web` service to `docker-compose.yml` (`api` already added in Phase 2) (`web` on `3000:80`, `api` on `8080:8080`, `depends_on` with healthcheck)
-- [ ] 4.2 `docker-compose.override.yml` for dev: `dotnet watch` with mounted `backend/`, Vite dev server with mounted `frontend/` (port 5173), `ASPNETCORE_ENVIRONMENT=Development`
-- [ ] 4.3 Verify both modes:
-  - Dev: `docker compose up --build` → http://localhost:5173
-  - Prod-like: `docker compose -f docker-compose.yml up --build` → http://localhost:3000
+- [x] 4.1 `web` service in `docker-compose.yml` (Nginx on `3000:80`, `depends_on: api`); `api` added in Phase 2
+- [x] 4.2 `docker-compose.override.yml` for dev: `dev` build stages in both Dockerfiles; `dotnet watch` with mounted `backend/` (container-only `bin`/`obj`, NuGet cache volume); Vite dev server with mounted `frontend/` on 5173 (`ports: !override`, image `node_modules`, polling watcher); `ASPNETCORE_ENVIRONMENT=Development` (seed data); dev images tagged `:dev` so modes never mix
+- [x] 4.3 Verified both modes:
+  - Dev: `docker compose up --build` → http://localhost:5173 — seed data, Vite proxy, HMR (~6s) and C# hot reload confirmed with real edits
+  - Prod-like: `docker compose -f docker-compose.yml up --build` → http://localhost:3000 — Production env, non-root API, Nginx proxy
+- [x] 4.4 `.gitattributes` (LF line endings) so mounted files behave the same on Windows
 
-**Checkpoint:** fresh clone + `.env` + one command = working app.
+Notes: `dotnet watch` logs a harmless `staticwebassets.development.json` error at startup (the API has no static web assets); hot reload works regardless. After changing `package.json` or a `.csproj`, run `docker compose up --build -V` to refresh the dependency volumes.
+
+**Checkpoint ✅:** `.env` + one command = working app, in either mode.
 
 ### Phase 5 — Docs & wrap-up
 - [ ] 5.1 README: prerequisites, setup, run commands, URLs, running tests, troubleshooting (port 1433 in use, SA password complexity rules)

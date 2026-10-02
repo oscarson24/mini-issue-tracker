@@ -21,13 +21,7 @@ public class IssuesController(AppDbContext db, TimeProvider clock) : ControllerB
         [FromQuery] IssueStatus? status,
         CancellationToken cancellationToken)
     {
-        // Numeric query values (e.g. ?status=5) bind to undefined enum members; reject them.
-        if (status is { } value && !Enum.IsDefined(value))
-        {
-            ModelState.AddModelError(nameof(status), "Status must be 'Open' or 'Resolved'.");
-            return ValidationProblem(ModelState);
-        }
-
+        // Invalid values (?status=Closed, ?status=5) are rejected by model binding with a 400 before this runs.
         var query = db.Issues.AsNoTracking();
         if (status is not null)
         {

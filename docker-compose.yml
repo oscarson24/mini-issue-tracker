@@ -1,3 +1,6 @@
+# Production-like stack: docker compose -f docker-compose.yml up --build   → http://localhost:3000
+# Development (hot reload) also loads docker-compose.override.yml automatically:
+#                         docker compose up --build                      → http://localhost:5173
 name: mini-issue-tracker
 
 services:
@@ -33,6 +36,16 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ./frontend
+    container_name: issue-tracker-web
+    ports:
+      - "3000:80"
+    depends_on:
+      - api
     restart: unless-stopped
 
 volumes:

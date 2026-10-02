@@ -9,6 +9,8 @@ const apiProxyTarget = process.env.API_PROXY_TARGET ?? 'http://localhost:8080'
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
+    // File events don't cross Windows/macOS bind mounts into containers, so Docker dev polls instead.
+    watch: process.env.WATCH_POLLING === 'true' ? { usePolling: true, interval: 300 } : undefined,
     proxy: {
       '/api': { target: apiProxyTarget, changeOrigin: true },
     },
