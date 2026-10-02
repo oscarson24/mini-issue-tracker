@@ -213,25 +213,25 @@ For running the API outside Docker: `dotnet user-secrets set ConnectionStrings:D
 **Checkpoint ✅:** tests pass; `docker compose up db api` → Swagger at `http://localhost:8080/swagger`; create/resolve/filter/400/404 verified against SQL Server; data survives restart.
 
 ### Phase 3 — Frontend (React + Tailwind)
-- [ ] 3.1 `npm create vite@latest frontend -- --template react-ts`
-- [ ] 3.2 Install & configure Tailwind v4: `npm i -D tailwindcss @tailwindcss/vite`, add `tailwindcss()` to `vite.config.ts`, `@import "tailwindcss";` in `index.css`
-- [ ] 3.3 `types/issue.ts`: `Issue`, `IssueStatus`, `CreateIssueRequest`
-- [ ] 3.4 **Services layer**
-  - `services/apiClient.ts`: `request<T>(path, options)` with base URL `/api`, JSON handling, typed `ApiError` (status + ProblemDetails validation errors)
-  - `services/issueService.ts`: `getAll(status?)`, `getById(id)`, `create(data)`, `resolve(id)`
-- [ ] 3.5 `useIssues(status)` hook: calls `issueService`, exposes `issues`, `loading`, `error`, `createIssue`, `resolveIssue`, `refresh`
-- [ ] 3.6 `IssueForm`: title (required) + description, client-side validation, disabled while submitting, clears on success, shows server validation errors
-- [ ] 3.7 `IssueList` / `IssueItem`: title, description, created/updated/resolved timestamps (`Intl.DateTimeFormat`), `StatusBadge` (green "Open" / gray "Resolved"), "Mark as resolved" button (hidden when resolved)
-- [ ] 3.8 `StatusFilter`: All / Open / Resolved segmented buttons; drives the `status` query param
-- [ ] 3.9 Empty state, loading state, error banner — all styled with Tailwind utilities; responsive layout (form + list stack on mobile)
-- [ ] 3.10 Vite dev proxy `/api` → `http://localhost:8080` (or `http://api:8080` inside Docker via env var)
-- [ ] 3.11 Tests (Vitest + RTL): `issueService` with mocked `fetch`; form submit, filter change, resolve button with mocked service
-- [ ] 3.12 Multi-stage `Dockerfile` (`node:22-alpine` build → `nginx:alpine`) + `nginx.conf` (SPA fallback + `/api` proxy)
+- [x] 3.1 Vite 8 + React 19 + TypeScript 6 scaffold (`react-ts` template, oxlint) — generated inside a `node:22-alpine` container
+- [x] 3.2 Tailwind CSS 4.3 via `@tailwindcss/vite`; `@import "tailwindcss";` in `index.css`
+- [x] 3.3 `types/issue.ts`: `Issue`, `IssueStatus`, `StatusFilter`, `CreateIssueRequest`, length limits
+- [x] 3.4 **Services layer**
+  - `services/apiClient.ts`: `request<T>()` + `apiClient.get/post/patch`, base URL `/api` (overridable via `VITE_API_BASE_URL`), typed `ApiError` (status, message, camelCase `fieldErrors`), network failures → status 0, aborts passed through
+  - `services/issueService.ts`: `getAll(status?, signal?)`, `getById(id)`, `create(data)`, `resolve(id)`
+- [x] 3.5 `useIssues(filter)` hook: aborts stale requests, exposes `issues`, `loading`, `error`, `createIssue`, `resolveIssue`, `refresh`; list updated in place after create/resolve (no refetch)
+- [x] 3.6 `IssueForm`: required/length validation, disabled while submitting, clears on success, server field errors shown inline
+- [x] 3.7 `IssueList` / `IssueItem` / `StatusBadge`: title, description, created/updated/resolved timestamps, badge, "Mark as resolved" with inline error
+- [x] 3.8 `StatusFilter`: All / Open / Resolved segmented buttons (`aria-pressed`), server-side filtering
+- [x] 3.9 Empty / loading skeleton / error-with-retry states; responsive (stacks below `md`)
+- [x] 3.10 Vite dev proxy `/api` → `API_PROXY_TARGET` (default `http://localhost:8080`)
+- [x] 3.11 Tests — 24 passing (Vitest 5 + RTL): apiClient, issueService, IssueForm, App flows with mocked service; lint clean
+- [x] 3.12 Multi-stage `Dockerfile` (`node:22-alpine` → `nginx:1.29-alpine`) + `nginx.conf` (SPA fallback, `/api` proxy, immutable asset caching)
 
-**Checkpoint:** UI works against the API.
+**Checkpoint ✅:** Nginx image served the app on :3000 against the real API; verified in Chrome: validation, create, resolve, Open/Resolved filters, no console errors.
 
 ### Phase 4 — Full Docker Compose
-- [ ] 4.1 Add `api` and `web` services to `docker-compose.yml` (`web` on `3000:80`, `api` on `8080:8080`, `depends_on` with healthcheck)
+- [ ] 4.1 Add `web` service to `docker-compose.yml` (`api` already added in Phase 2) (`web` on `3000:80`, `api` on `8080:8080`, `depends_on` with healthcheck)
 - [ ] 4.2 `docker-compose.override.yml` for dev: `dotnet watch` with mounted `backend/`, Vite dev server with mounted `frontend/` (port 5173), `ASPNETCORE_ENVIRONMENT=Development`
 - [ ] 4.3 Verify both modes:
   - Dev: `docker compose up --build` → http://localhost:5173
