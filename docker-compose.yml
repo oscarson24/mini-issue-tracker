@@ -20,5 +20,20 @@ services:
       start_period: 30s
     restart: unless-stopped
 
+  api:
+    build:
+      context: ./backend
+      dockerfile: IssueTracker.Api/Dockerfile
+    container_name: issue-tracker-api
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
+      ConnectionStrings__Default: "Server=db,1433;Database=${DB_NAME:-IssueTracker};User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;Encrypt=True"
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
 volumes:
   mssql-data:

@@ -104,7 +104,7 @@ mini-issue-tracker/
 │   │   ├── appsettings.json
 │   │   └── Dockerfile
 │   ├── IssueTracker.Api.Tests/
-│   └── IssueTracker.sln
+│   └── IssueTracker.slnx
 ├── frontend/
 │   ├── src/
 │   │   ├── services/
@@ -194,20 +194,23 @@ Each phase ends with a verifiable checkpoint and a commit.
 **Checkpoint:** SQL Server reachable on `localhost:1433`.
 
 ### Phase 2 — Backend (.NET API)
-- [ ] 2.1 `dotnet new webapi --use-controllers` → `IssueTracker.Api`; create solution + test project
-- [ ] 2.2 Add packages: `Microsoft.EntityFrameworkCore.SqlServer`, `Microsoft.EntityFrameworkCore.Design`, `Swashbuckle.AspNetCore`
-- [ ] 2.3 `Issue` entity + `IssueStatus` enum; `AppDbContext` with Fluent config (lengths, string-enum conversion, index on `Status`)
-- [ ] 2.4 Connection string from config/env var (`ConnectionStrings__Default`); `EnableRetryOnFailure`
-- [ ] 2.5 Initial migration (`dotnet ef migrations add InitialCreate`); apply on startup via `Database.MigrateAsync()`
-- [ ] 2.6 DTOs + validation (DataAnnotations → automatic 400 ProblemDetails)
-- [ ] 2.7 `IssuesController` with the 4 endpoints from section 5
-- [ ] 2.8 Swagger UI enabled (XML comments for endpoint descriptions); enums as strings (`JsonStringEnumConverter`)
-- [ ] 2.9 CORS policy for `http://localhost:5173` (dev only; prod path uses the Nginx proxy)
-- [ ] 2.10 Optional seed data (2–3 sample issues) in Development
-- [ ] 2.11 Integration tests: list, filter, create (valid/invalid), resolve, resolve-not-found
-- [ ] 2.12 Multi-stage `Dockerfile` (`sdk:10.0` build → `aspnet:10.0` runtime, port 8080)
+- [x] 2.1 `dotnet new webapi --use-controllers` → `IssueTracker.Api`; solution (`IssueTracker.slnx`, the .NET 10 default format) + test project
+- [x] 2.2 Add packages: `Microsoft.EntityFrameworkCore.SqlServer` 10.0.12, `Microsoft.EntityFrameworkCore.Design` 10.0.12, `Swashbuckle.AspNetCore` 10.2.3
+- [x] 2.3 `Issue` entity + `IssueStatus` enum; `AppDbContext` with Fluent config (lengths, string-enum conversion, index on `Status`)
+- [x] 2.4 Connection string from config/env var (`ConnectionStrings__Default`, fails fast if missing); `EnableRetryOnFailure`
+- [x] 2.5 Initial migration (`InitialCreate`); applied on startup via `Database.MigrateAsync()` (SQL Server only)
+- [x] 2.6 DTOs + validation (DataAnnotations → automatic 400 ProblemDetails)
+- [x] 2.7 `IssuesController` with the 4 endpoints from section 5
+- [x] 2.8 Swagger UI at `/swagger` in **all** environments (it is the project's documentation); XML comments; enums as strings
+- [x] 2.9 CORS policy from `Cors:AllowedOrigins` (`http://localhost:5173` in Development)
+- [x] 2.10 Seed data (3 sample issues) in Development when the table is empty
+- [x] 2.11 Integration tests — 19 passing (SQLite in-memory + `FakeTimeProvider` for deterministic timestamps)
+- [x] 2.12 Multi-stage `Dockerfile` (`sdk:10.0` build → `aspnet:10.0` runtime, non-root, port 8080); `api` service added to compose
 
-**Checkpoint:** tests pass; `docker compose up db api` → Swagger at `http://localhost:8080/swagger` works end to end.
+Notes: HTTPS redirection removed — the API serves plain HTTP on 8080 inside Docker (TLS, if needed, belongs at a reverse proxy).
+For running the API outside Docker: `dotnet user-secrets set ConnectionStrings:Default "Server=localhost,1433;Database=IssueTracker;User Id=sa;Password=<pw>;TrustServerCertificate=True"` in `backend/IssueTracker.Api`.
+
+**Checkpoint ✅:** tests pass; `docker compose up db api` → Swagger at `http://localhost:8080/swagger`; create/resolve/filter/400/404 verified against SQL Server; data survives restart.
 
 ### Phase 3 — Frontend (React + Tailwind)
 - [ ] 3.1 `npm create vite@latest frontend -- --template react-ts`
