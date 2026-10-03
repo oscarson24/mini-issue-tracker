@@ -1,4 +1,4 @@
-AI-Reasoning — Mini Issue Tracker
+AI-Reasoning - Mini Issue Tracker
 ==================================
 
 How I used AI
@@ -52,6 +52,6 @@ Things the AI caught and corrected in its own work (checked by its tests/reviews
 
 My judgement
 ------------
-I treated the AI's output as a draft to verify, not as final. Architecture decisions
+I treated the AI's output as a draft to verify. Architecture decisions
 (services layer, Tailwind, Docker strategy, branch targets) were mine. Each phase was
 checked against tests and a running app before I approved the next one.
